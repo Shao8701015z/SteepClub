@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEEP Club - 首頁</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        /* 自定義滑動條樣式 */
+        .home-container::-webkit-scrollbar {
+            width: 4px; /* 更窄的滑動條寬度 */
+            position: fixed;
+            right: 0;
+        }
+
+        .home-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05); /* 滑動條軌道顏色 */
+            border-radius: 4px;
+        }
+
+        .home-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2); /* 滑動條滑塊顏色 */
+            border-radius: 4px;
+        }
+
+        .home-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3); /* 滑鼠懸停時滑塊顏色 */
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .home-container {
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 24px; /* 增加右側間距，為滑動條預留空間 */
+        }
+
+        .greeting {
+            margin-bottom: 20px;
+        }
+
+        .greeting h1 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .user-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 14px 10px;
+            flex: 1;
+            margin: 0 5px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:first-child {
+            margin-left: 0;
+        }
+
+        .stat-card:last-child {
+            margin-right: 0;
+        }
+
+        .stat-card i {
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            font-size: 40px;
+            opacity: 0.1;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .view-all {
+            color: var(--secondary-color);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .route-card {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .route-image {
+            height: 130px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .route-difficulty {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .route-info {
+            padding: 14px;
+        }
+
+        .route-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .route-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #777;
+            font-size: 12px;
+        }
+
+        .badge-container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .badge-wrapper {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .badge-wrapper::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .badge {
+            min-width: 75px;
+            margin-right: 14px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .badge-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 6px;
+            color: white;
+            font-size: 22px;
+        }
+
+        .badge-name {
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .activity-feed {
+            margin-top: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            margin-bottom: 16px;
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .activity-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .activity-content {
+            flex: 1;
+            min-width: 0; /* 防止內容溢出 */
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .activity-user {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .activity-text {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            font-size: 13px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .activity-meta {
+            display: flex;
+            color: #777;
+            font-size: 12px;
+        }
+
+        .activity-meta div {
+            margin-right: 12px;
+        }
+
+        .activity-meta i {
+            margin-right: 4px;
+        }
+
+        .weather-container {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .current-weather {
+            display: flex;
+            align-items: center;
+        }
+
+        .weather-icon {
+            font-size: 32px;
+            margin-right: 14px;
+            color: var(--secondary-color);
+        }
+
+        .weather-temp {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .weather-desc {
+            color: #777;
+            font-size: 13px;
+        }
+
+        .weather-location {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .forecast {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .forecast-day {
+            text-align: center;
+        }
+
+        .forecast-date {
+            font-size: 11px;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .forecast-icon {
+            font-size: 18px;
+            margin-bottom: 6px;
+            color: var(--secondary-color);
+        }
+
+        .forecast-temp {
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="home-container">
+        <div class="greeting">
+            <h1 class="section-title">嗨，登山者！<span class="text-primary">👋</span></h1>
+            <p>今天是完美的登山日！</p>
+        </div>
+
+        <div class="weather-container">
+            <div class="weather-header">
+                <div>
+                    <h3>今日天氣</h3>
+                    <div class="weather-location">玉山國家公園</div>
+                </div>
+                <div class="current-weather">
+                    <div class="weather-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div>
+                        <div class="weather-temp">24°</div>
+                        <div class="weather-desc">晴朗</div>
+                    </div>
+                </div>
+            </div>
+            <div class="forecast">
+                <div class="forecast-day">
+                    <div class="forecast-date">明天</div>
+                    <div class="forecast-icon"><i class="fas fa-cloud-sun"></i></div>
+                    <div class="forecast-temp">22°</div>
+                </div>
+                <div class="forecast-day">
+                    <div class="forecast-date">週三</div>
+                    <div class="forecast-icon"><i class="fas fa-cloud"></i></div>
+                    <div class="forecast-temp">20°</div>
+                </div>
+                <div class="forecast-day">
+                    <div class="forecast-date">週四</div>
+                    <div class="forecast-icon"><i class="fas fa-cloud-showers-heavy"></i></div>
+                    <div class="forecast-temp">18°</div>
+                </div>
+                <div class="forecast-day">
+                    <div class="forecast-date">週五</div>
+                    <div class="forecast-icon"><i class="fas fa-cloud-sun"></i></div>
+                    <div class="forecast-temp">21°</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-stats">
+            <div class="stat-card">
+                <div class="stat-value">27</div>
+                <div class="stat-label">已登百岳</div>
+                <i class="fas fa-mountain"></i>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">13,482</div>
+                <div class="stat-label">總計爬升(m)</div>
+                <i class="fas fa-arrow-up"></i>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">892</div>
+                <div class="stat-label">STEEP幣</div>
+                <i class="fas fa-coins"></i>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2>推薦路線</h2>
+            <a href="#" class="view-all">查看全部</a>
+        </div>
+
+        <div class="route-card">
+            <div class="route-image" style="background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                <div class="route-difficulty">中等難度</div>
+            </div>
+            <div class="route-info">
+                <div class="route-name">玉山主峰線</div>
+                <div class="route-meta">
+                    <div><i class="fas fa-route"></i> 10.9 公里</div>
+                    <div><i class="fas fa-clock"></i> 約8小時</div>
+                    <div><i class="fas fa-arrow-up"></i> 1,150 公尺</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="route-card">
+            <div class="route-image" style="background-image: url('https://images.unsplash.com/photo-1564769662533-4f00a87b4056?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1354&q=80');">
+                <div class="route-difficulty">簡單</div>
+            </div>
+            <div class="route-info">
+                <div class="route-name">阿里山神木區步道</div>
+                <div class="route-meta">
+                    <div><i class="fas fa-route"></i> 3.5 公里</div>
+                    <div><i class="fas fa-clock"></i> 約2小時</div>
+                    <div><i class="fas fa-arrow-up"></i> 150 公尺</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="badge-container">
+            <div class="section-header">
+                <h2>最近獲得的成就</h2>
+                <a href="#" class="view-all">查看全部</a>
+            </div>
+            <div class="badge-wrapper">
+                <div class="badge">
+                    <div class="badge-icon" style="background-color: #ff9500;">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="badge-name">百岳挑戰者</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon" style="background-color: #4cd964;">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <div class="badge-name">森林守護者</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon" style="background-color: #5ac8fa;">
+                        <i class="fas fa-hiking"></i>
+                    </div>
+                    <div class="badge-name">健行愛好者</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon" style="background-color: #007aff;">
+                        <i class="fas fa-compass"></i>
+                    </div>
+                    <div class="badge-name">探險家</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="activity-feed">
+            <div class="section-header">
+                <h2>好友動態</h2>
+                <a href="#" class="view-all">查看全部</a>
+            </div>
+            <div class="activity-item">
+                <div class="activity-avatar">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User">
+                </div>
+                <div class="activity-content">
+                    <div class="activity-header">
+                        <div class="activity-user">林小明</div>
+                        <div class="activity-time">2小時前</div>
+                    </div>
+                    <div class="activity-text">
+                        今天完成了玉山主峰挑戰！風景太美了，大家也來挑戰吧！
+                    </div>
+                    <div class="activity-meta">
+                        <div><i class="fas fa-heart"></i> 24</div>
+                        <div><i class="fas fa-comment"></i> 5</div>
+                        <div><i class="fas fa-share"></i> 3</div>
+                    </div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-avatar">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+                </div>
+                <div class="activity-content">
+                    <div class="activity-header">
+                        <div class="activity-user">王大華</div>
+                        <div class="activity-time">昨天</div>
+                    </div>
+                    <div class="activity-text">
+                        完成合歡山系列！獲得了「高山攝影師」成就！
+                    </div>
+                    <div class="activity-meta">
+                        <div><i class="fas fa-heart"></i> 42</div>
+                        <div><i class="fas fa-comment"></i> 12</div>
+                        <div><i class="fas fa-share"></i> 7</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 增加底部間距，避免內容被底部導航擋住 -->
+        <div style="height: 80px;"></div>
+    </div>
+    
+    <script>
+        // 添加滑動效果增強
+        document.addEventListener('DOMContentLoaded', function() {
+            const homeContainer = document.querySelector('.home-container');
+            
+            // 滑動到頂部時的加載效果（如果需要）
+            homeContainer.addEventListener('scroll', function() {
+                if (homeContainer.scrollTop <= 5) {
+                    // 可以添加下拉刷新效果
+                    console.log('可以觸發下拉刷新...');
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

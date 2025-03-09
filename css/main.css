@@ -1,0 +1,201 @@
+/* 全局樣式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+:root {
+    --primary-color: #24b574;
+    --secondary-color: #007bff;
+    --accent-color: #ff6b6b;
+    --text-color: #333;
+    --light-text: #f8f9fa;
+    --background-color: #f4f4f4;
+    --card-color: #ffffff;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --radius: 12px;
+}
+
+body {
+    background-color: #f5f7fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 0px;
+    overflow: hidden;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #e6e9f0 0%, #d2d9e8 100%);
+    z-index: -1;
+}
+
+/* iPhone 16 尺寸模擬 */
+.phone-container {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background-color: var(--background-color);
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 10px 25px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
+    border: 10px solid #000;
+    transform-origin: center;
+}
+
+/* 狀態欄 */
+.status-bar {
+    height: 44px;
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.status-icons {
+    display: flex;
+    gap: 8px;
+}
+
+/* 主內容區域 */
+.app-content {
+    height: calc(100% - 44px - 83px);
+    overflow: hidden;
+    position: relative;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* 底部導航 */
+.bottom-nav {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 83px;
+    background-color: var(--card-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    z-index: 10;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+
+.nav-item i {
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.nav-item span {
+    font-size: 12px;
+}
+
+.nav-item.active {
+    color: var(--primary-color);
+}
+
+/* SOS 特殊樣式 */
+.nav-item[data-page="sos"] {
+    position: relative;
+}
+
+.nav-item[data-page="sos"] i {
+    color: var(--accent-color);
+}
+
+/* 通用元素樣式 */
+.btn {
+    padding: 12px 24px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    background-color: #1a9d63;
+}
+
+.card {
+    background-color: var(--card-color);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text-color);
+}
+
+.text-primary {
+    color: var(--primary-color);
+}
+
+.text-accent {
+    color: var(--accent-color);
+}
+
+/* 避免內容溢出的通用修復 */
+.scrollable-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 20px;
+}
+
+/* 響應式調整 */
+@media (max-height: 900px) {
+    .phone-container {
+        transform: scale(0.9);
+    }
+}
+
+@media (max-height: 800px) {
+    .phone-container {
+        transform: scale(0.8);
+    }
+}
+
+@media (max-height: 700px) {
+    .phone-container {
+        transform: scale(0.7);
+    }
+} 

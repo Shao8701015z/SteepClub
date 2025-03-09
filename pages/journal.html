@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEEP Club - 登山日誌</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        /* 自定義滑動條樣式 */
+        .journal-container::-webkit-scrollbar {
+            width: 4px; /* 更窄的滑動條寬度 */
+            position: fixed;
+            right: 0;
+        }
+
+        .journal-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05); /* 滑動條軌道顏色 */
+            border-radius: 4px;
+        }
+
+        .journal-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2); /* 滑動條滑塊顏色 */
+            border-radius: 4px;
+        }
+
+        .journal-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3); /* 滑鼠懸停時滑塊顏色 */
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .journal-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* 使整個容器可滑動 */
+            -webkit-overflow-scrolling: touch; /* 提升iOS上的滑動體驗 */
+            padding-right: 4px; /* 確保內容不會貼近滑動條 */
+        }
+
+        .journal-header {
+            padding: 16px 16px 12px;
+            background-color: var(--card-color);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0; /* 防止頭部被壓縮 */
+            position: sticky; /* 使頭部固定 */
+            top: 0; /* 固定在頂部 */
+            z-index: 10; /* 確保在內容上層 */
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border-radius: 20px;
+            border: 1px solid #e1e4e8;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 1px 6px rgba(36, 181, 116, 0.2);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            color: #999;
+        }
+
+        .filter-tabs {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: #f0f0f0;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .filter-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .journal-content {
+            padding: 16px;
+            flex: 1;
+            overflow: visible; /* 移除overflow限制，讓內容可以在container中滑動 */
+        }
+
+        .action-buttons {
+            display: flex;
+            margin-bottom: 16px;
+            gap: 10px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        .action-button.create {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .action-button.invite {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .action-button i {
+            margin-right: 6px;
+        }
+
+        .journal-feed-item {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .journal-header-user {
+            display: flex;
+            padding: 12px 16px;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+        }
+
+        .verification-badge {
+            color: var(--primary-color);
+            margin-left: 4px;
+            font-size: 14px;
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .journal-options {
+            color: #777;
+            font-size: 18px;
+            padding: 4px;
+        }
+
+        .journal-content-text {
+            padding: 0 16px 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .journal-image-container {
+            position: relative;
+            height: 260px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .journal-images {
+            display: flex;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .journal-image {
+            flex: 0 0 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .image-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .indicator-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .indicator-dot.active {
+            background-color: white;
+            width: 8px;
+            height: 8px;
+        }
+
+        .journal-meta {
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .journal-details {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .journal-detail {
+            display: flex;
+            align-items: center;
+            margin-right: 14px;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .journal-detail i {
+            margin-right: 4px;
+            color: var(--secondary-color);
+        }
+
+        .journal-tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            gap: 6px;
+        }
+
+        .journal-tag {
+            background-color: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .journal-actions {
+            display: flex;
+            padding: 10px 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .journal-action {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #666;
+            padding: 6px 0;
+        }
+
+        .journal-action i {
+            margin-right: 4px;
+        }
+
+        .journal-comments {
+            background-color: #f9f9f9;
+            padding: 12px 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .comment-count {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .comment {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comment-content {
+            flex: 1;
+            background-color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .comment-author {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .add-comment {
+            display: flex;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .add-comment input {
+            flex: 1;
+            border: 1px solid #e1e4e8;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .add-comment input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .send-button {
+            margin-left: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+        }
+
+        .hiking-invitation {
+            background-color: #f0f7ff;
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .invitation-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .invitation-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .invitation-title {
+            flex: 1;
+        }
+
+        .invitation-title h3 {
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .invitation-title p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .invitation-details {
+            margin-bottom: 12px;
+        }
+
+        .invitation-detail {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .invitation-detail i {
+            width: 24px;
+            color: var(--secondary-color);
+        }
+
+        .invitation-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .invitation-button {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: var(--radius);
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .invitation-button.join {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .invitation-button.details {
+            background-color: #eee;
+            color: #555;
+        }
+
+        .create-post-fab {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(36, 181, 116, 0.3);
+            z-index: 100;
+            font-size: 24px;
+        }
+
+        /* 載入更多動畫 */
+        .loading-more {
+            text-align: center;
+            padding: 20px 0;
+            color: #777;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="journal-container">
+        <div class="journal-header">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="搜尋登山日誌...">
+            </div>
+            <div class="filter-tabs">
+                <div class="filter-tab active">全部</div>
+                <div class="filter-tab">百岳</div>
+                <div class="filter-tab">中級山</div>
+                <div class="filter-tab">郊山</div>
+                <div class="filter-tab">精選</div>
+                <div class="filter-tab">附近</div>
+                <div class="filter-tab">已追蹤</div>
+            </div>
+        </div>
+        
+        <div class="journal-content">
+            <div class="action-buttons">
+                <div class="action-button create">
+                    <i class="fas fa-pen"></i> 新增日誌
+                </div>
+                <div class="action-button invite">
+                    <i class="fas fa-users"></i> 發起活動
+                </div>
+            </div>
+            
+            <!-- 山友邀約 -->
+            <div class="hiking-invitation">
+                <div class="invitation-header">
+                    <div class="invitation-icon">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <div class="invitation-title">
+                        <h3>合歡山東峰夜爬星空團</h3>
+                        <p>由 王大山 組織 • 還缺 3 位山友</p>
+                    </div>
+                </div>
+                <div class="invitation-details">
+                    <div class="invitation-detail">
+                        <i class="fas fa-calendar-alt"></i> 
+                        <span>2023年5月20日 (週六) 晚上8點出發</span>
+                    </div>
+                    <div class="invitation-detail">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        <span>合歡山松雪樓停車場集合</span>
+                    </div>
+                    <div class="invitation-detail">
+                        <i class="fas fa-user"></i> 
+                        <span>已有5人參加，限制8人</span>
+                    </div>
+                </div>
+                <div class="invitation-actions">
+                    <div class="invitation-button join">我要參加</div>
+                    <div class="invitation-button details">查看詳情</div>
+                </div>
+            </div>
+            
+            <!-- 貼文內容 -->
+            <div class="journal-feed-item">
+                <div class="journal-header-user">
+                    <div class="user-avatar">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">
+                            王大華 <i class="fas fa-check-circle verification-badge"></i>
+                        </div>
+                        <div class="post-time">1 小時前 • 公開</div>
+                    </div>
+                    <div class="journal-options">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                </div>
+                
+                <div class="journal-content-text">
+                    週末挑戰了合歡山群峰！這次天氣超好，能見度極佳，看到壯觀的雲海和日出。推薦大家有機會一定要去體驗，但記得注意保暖，山上還是很冷的。
+                </div>
+                
+                <div class="journal-image-container">
+                    <div class="journal-images" id="images-1">
+                        <div class="journal-image" style="background-image: url('https://images.unsplash.com/photo-1520208422220-d12a3c588e6c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');"></div>
+                        <div class="journal-image" style="background-image: url('https://images.unsplash.com/photo-1543537424-1a76946fed7c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80');"></div>
+                        <div class="journal-image" style="background-image: url('https://images.unsplash.com/photo-1590994579768-2792822e7181?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80');"></div>
+                    </div>
+                    <div class="image-indicator">
+                        <div class="indicator-dot active"></div>
+                        <div class="indicator-dot"></div>
+                        <div class="indicator-dot"></div>
+                    </div>
+                </div>
+                
+                <div class="journal-meta">
+                    <div class="journal-details">
+                        <div class="journal-detail">
+                            <i class="fas fa-mountain"></i> 合歡山主峰
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-ruler-vertical"></i> 3,417 公尺
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-clock"></i> 6 小時 30 分
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-route"></i> 8.2 公里
+                        </div>
+                    </div>
+                    
+                    <div class="journal-tags">
+                        <div class="journal-tag">#合歡山</div>
+                        <div class="journal-tag">#百岳</div>
+                        <div class="journal-tag">#日出</div>
+                        <div class="journal-tag">#雲海</div>
+                    </div>
+                </div>
+                
+                <div class="journal-actions">
+                    <div class="journal-action">
+                        <i class="fas fa-heart"></i> 42 喜歡
+                    </div>
+                    <div class="journal-action">
+                        <i class="fas fa-comment"></i> 7 留言
+                    </div>
+                    <div class="journal-action">
+                        <i class="fas fa-share-alt"></i> 分享
+                    </div>
+                </div>
+                
+                <div class="journal-comments">
+                    <div class="comment-count">7 則留言</div>
+                    <div class="comment">
+                        <div class="comment-avatar">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User">
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-author">林小明</div>
+                            太美了！想請問是哪一天去的？天氣看起來超好！
+                        </div>
+                    </div>
+                    <div class="comment">
+                        <div class="comment-avatar">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-author">王大華</div>
+                            上週六！難得的好天氣，運氣真的很好
+                        </div>
+                    </div>
+                    <div class="add-comment">
+                        <input type="text" placeholder="新增留言...">
+                        <button class="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="journal-feed-item">
+                <div class="journal-header-user">
+                    <div class="user-avatar">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User">
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">
+                            林小明
+                        </div>
+                        <div class="post-time">昨天 • 公開</div>
+                    </div>
+                    <div class="journal-options">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                </div>
+                
+                <div class="journal-content-text">
+                    今天完成了玉山主峰挑戰！這是我的第27座百岳，風景太美了，大家也來挑戰吧！感謝嚮導小陳的帶領和隊友們的互相扶持，才能順利登頂。
+                </div>
+                
+                <div class="journal-image-container">
+                    <div class="journal-images" id="images-2">
+                        <div class="journal-image" style="background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');"></div>
+                        <div class="journal-image" style="background-image: url('https://images.unsplash.com/photo-1485119924157-cc6b2e0016dd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');"></div>
+                    </div>
+                    <div class="image-indicator">
+                        <div class="indicator-dot active"></div>
+                        <div class="indicator-dot"></div>
+                    </div>
+                </div>
+                
+                <div class="journal-meta">
+                    <div class="journal-details">
+                        <div class="journal-detail">
+                            <i class="fas fa-mountain"></i> 玉山主峰
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-ruler-vertical"></i> 3,952 公尺
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-clock"></i> 7 小時 45 分
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-route"></i> 10.9 公里
+                        </div>
+                    </div>
+                    
+                    <div class="journal-tags">
+                        <div class="journal-tag">#玉山</div>
+                        <div class="journal-tag">#百岳</div>
+                        <div class="journal-tag">#台灣最高峰</div>
+                    </div>
+                </div>
+                
+                <div class="journal-actions">
+                    <div class="journal-action">
+                        <i class="fas fa-heart"></i> 78 喜歡
+                    </div>
+                    <div class="journal-action">
+                        <i class="fas fa-comment"></i> 12 留言
+                    </div>
+                    <div class="journal-action">
+                        <i class="fas fa-share-alt"></i> 分享
+                    </div>
+                </div>
+                
+                <div class="journal-comments">
+                    <div class="comment-count">12 則留言</div>
+                    <div class="comment">
+                        <div class="comment-avatar">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-author">王大華</div>
+                            恭喜完成！下次我們一起去！
+                        </div>
+                    </div>
+                    <div class="comment">
+                        <div class="comment-avatar">
+                            <img src="https://randomuser.me/api/portraits/women/29.jpg" alt="User">
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-author">陳雪華</div>
+                            請問申請入山證困難嗎？我也想去！
+                        </div>
+                    </div>
+                    <div class="add-comment">
+                        <input type="text" placeholder="新增留言...">
+                        <button class="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="journal-feed-item">
+                <div class="journal-header-user">
+                    <div class="user-avatar">
+                        <img src="https://randomuser.me/api/portraits/men/85.jpg" alt="User">
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">
+                            李志豪 <i class="fas fa-check-circle verification-badge"></i>
+                        </div>
+                        <div class="post-time">3 天前 • 公開</div>
+                    </div>
+                    <div class="journal-options">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                </div>
+                
+                <div class="journal-content-text">
+                    象山夜景超美的！輕鬆好走又能眺望台北101，適合下班後小散步。記得帶防蚊液，蚊子有點多😅
+                </div>
+                
+                <div class="journal-image-container">
+                    <div class="journal-images" id="images-3">
+                        <div class="journal-image" style="background-image: url('https://images.unsplash.com/photo-1555258169-9416c330d4fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');"></div>
+                    </div>
+                </div>
+                
+                <div class="journal-meta">
+                    <div class="journal-details">
+                        <div class="journal-detail">
+                            <i class="fas fa-mountain"></i> 象山步道
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-ruler-vertical"></i> 183 公尺
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-clock"></i> 50 分
+                        </div>
+                        <div class="journal-detail">
+                            <i class="fas fa-route"></i> 1.5 公里
+                        </div>
+                    </div>
+                    
+                    <div class="journal-tags">
+                        <div class="journal-tag">#象山</div>
+                        <div class="journal-tag">#台北市</div>
+                        <div class="journal-tag">#夜景</div>
+                        <div class="journal-tag">#郊山</div>
+                    </div>
+                </div>
+                
+                <div class="journal-actions">
+                    <div class="journal-action">
+                        <i class="fas fa-heart"></i> 24 喜歡
+                    </div>
+                    <div class="journal-action">
+                        <i class="fas fa-comment"></i> 5 留言
+                    </div>
+                    <div class="journal-action">
+                        <i class="fas fa-share-alt"></i> 分享
+                    </div>
+                </div>
+            </div>
+            
+            <div class="loading-more">
+                <div class="loading-spinner"></div>
+                <span>載入更多內容...</span>
+            </div>
+            
+            <!-- 確保底部有足夠空間，避免內容被底部導航欄遮擋 -->
+            <div style="height: 80px;"></div>
+        </div>
+        
+        <div class="create-post-fab">
+            <i class="fas fa-plus"></i>
+        </div>
+    </div>
+    
+    <script>
+        // 處理圖片滑動效果
+        document.querySelectorAll('.journal-image-container').forEach(container => {
+            const images = container.querySelector('.journal-images');
+            const dots = container.querySelectorAll('.indicator-dot');
+            let currentIndex = 0;
+            let startX, moveX;
+            
+            // 觸摸開始事件
+            images.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            });
+            
+            // 觸摸移動事件
+            images.addEventListener('touchmove', (e) => {
+                moveX = e.touches[0].clientX;
+            });
+            
+            // 觸摸結束事件
+            images.addEventListener('touchend', (e) => {
+                if (startX - moveX > 50) { // 向左滑動
+                    currentIndex = Math.min(currentIndex + 1, dots.length - 1);
+                    updateSlide();
+                } else if (moveX - startX > 50) { // 向右滑動
+                    currentIndex = Math.max(currentIndex - 1, 0);
+                    updateSlide();
+                }
+            });
+            
+            // 更新滑動位置和指示器
+            function updateSlide() {
+                images.style.transform = `translateX(-${currentIndex * 100}%)`;
+                dots.forEach((dot, index) => {
+                    if (index === currentIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            }
+            
+            // 點擊指示器切換圖片
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    currentIndex = index;
+                    updateSlide();
+                });
+            });
+        });
+        
+        // 過濾標籤點擊事件
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+        
+        // 模擬滾動加載更多內容
+        const journalContainer = document.querySelector('.journal-container');
+        const loadingMore = document.querySelector('.loading-more');
+        
+        journalContainer.addEventListener('scroll', function() {
+            const scrollPosition = journalContainer.scrollTop + journalContainer.clientHeight;
+            const scrollHeight = journalContainer.scrollHeight;
+            
+            if (scrollPosition >= scrollHeight - 100) {
+                // 顯示載入動畫
+                loadingMore.style.display = 'flex';
+                
+                // 模擬載入延遲
+                setTimeout(() => {
+                    loadingMore.style.display = 'none';
+                    // 可以在此添加新的內容
+                }, 2000);
+            }
+        });
+
+        // 搜索框交互
+        const searchInput = document.querySelector('.search-box input');
+        searchInput.addEventListener('focus', function() {
+            this.parentElement.style.boxShadow = '0 1px 6px rgba(36, 181, 116, 0.2)';
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            this.parentElement.style.boxShadow = '';
+        });
+    </script>
+</body>
+</html>

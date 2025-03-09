@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEEP Club - 路線規劃</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        /* 自定義滑動條樣式 */
+        .route-container::-webkit-scrollbar {
+            width: 4px; /* 更窄的滑動條寬度 */
+            position: fixed;
+            right: 0;
+        }
+
+        .route-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05); /* 滑動條軌道顏色 */
+            border-radius: 4px;
+        }
+
+        .route-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2); /* 滑動條滑塊顏色 */
+            border-radius: 4px;
+        }
+
+        .route-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3); /* 滑鼠懸停時滑塊顏色 */
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .route-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* 使整個容器可滑動 */
+            -webkit-overflow-scrolling: touch; /* 提升iOS上的滑動體驗 */
+            padding-right: 4px; /* 確保內容不會貼近滑動條 */
+            background-color: #fafafa;
+        }
+
+        .route-header {
+            padding: 16px 16px 12px;
+            background-color: var(--card-color);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0; /* 防止頭部被壓縮 */
+            position: sticky; /* 使頭部固定 */
+            top: 0; /* 固定在頂部 */
+            z-index: 10; /* 確保在內容上層 */
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border-radius: 20px;
+            border: 1px solid #e1e4e8;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 1px 6px rgba(36, 181, 116, 0.2);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            color: #999;
+        }
+
+        .filter-tabs {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .filter-tab {
+            padding: 6px 14px;
+            margin-right: 8px;
+            background-color: #f0f0f0;
+            border-radius: 16px;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 500;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .filter-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 5px rgba(36, 181, 116, 0.2);
+        }
+
+        .ar-button {
+            background: linear-gradient(90deg, var(--accent-color) 0%, #ff8585 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.25);
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .ar-button:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(255, 107, 107, 0.2);
+        }
+
+        .ar-button i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .route-list {
+            flex: 1;
+            overflow: visible; /* 移除overflow限制，讓內容可以在container中滑動 */
+            padding: 12px 16px 16px;
+        }
+
+        .route-item {
+            background-color: var(--card-color);
+            border-radius: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .route-item:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .route-image {
+            height: 150px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .route-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
+        }
+
+        .route-difficulty {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 2;
+        }
+
+        .route-distance {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 2;
+        }
+
+        .route-info {
+            padding: 14px;
+        }
+
+        .route-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .route-meta {
+            display: flex;
+            flex-wrap: wrap;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .route-meta div {
+            margin-right: 12px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .route-meta div i {
+            margin-right: 4px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .route-actions {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .route-action-btn {
+            padding: 6px 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: var(--secondary-color);
+            border-right: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+        }
+
+        .route-action-btn:active {
+            background-color: #f9f9f9;
+        }
+
+        .route-action-btn:last-child {
+            border-right: none;
+        }
+
+        .route-action-btn i {
+            margin-right: 5px;
+            font-size: 14px;
+        }
+
+        /* AR視圖樣式 */
+        .ar-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .ar-view.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .ar-header {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .ar-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .ar-close {
+            font-size: 18px;
+            color: white;
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .ar-close:active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .ar-content {
+            flex: 1;
+            background-image: url('https://images.unsplash.com/photo-1559869823-d3db8e9c6048?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .ar-directions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 16px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+            color: white;
+        }
+
+        .ar-next-step {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .ar-distance {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .ar-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .ar-control-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: background-color 0.2s ease;
+        }
+        
+        .ar-control-btn:active {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .map-view {
+            height: 100%;
+            background-image: url('https://maps.googleapis.com/maps/api/staticmap?center=23.47,120.95&zoom=9&size=400x400&maptype=terrain&markers=color:red|23.47,120.95&key=YOUR_API_KEY');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .map-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-control-btn {
+            flex: 1;
+            height: 44px;
+            background-color: white;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .map-control-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+        }
+
+        .map-control-btn i {
+            margin-right: 6px;
+            font-size: 16px;
+        }
+
+        .map-control-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 10px rgba(36, 181, 116, 0.2);
+        }
+        
+        .map-control-btn.primary:active {
+            background-color: #20a368;
+        }
+        
+        .no-results {
+            display: none;
+            text-align: center;
+            padding: 30px 0;
+            color: #777;
+        }
+        
+        .no-results i {
+            font-size: 40px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        
+        .route-skeleton {
+            display: none;
+            background-color: var(--card-color);
+            border-radius: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            height: 260px;
+        }
+        
+        .skeleton-image {
+            height: 150px;
+            background: linear-gradient(90deg, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        .skeleton-info {
+            padding: 14px;
+        }
+        
+        .skeleton-line {
+            height: 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+        }
+        
+        .skeleton-line.title {
+            height: 16px;
+            width: 60%;
+            margin-bottom: 14px;
+        }
+        
+        .skeleton-line.short {
+            width: 40%;
+        }
+        
+        .skeleton-line.medium {
+            width: 70%;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="route-container">
+        <div class="route-header">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="搜尋路線或地點">
+            </div>
+            <div class="filter-tabs">
+                <div class="filter-tab active">所有路線</div>
+                <div class="filter-tab">百岳路線</div>
+                <div class="filter-tab">中級山</div>
+                <div class="filter-tab">郊山</div>
+                <div class="filter-tab">已儲存</div>
+            </div>
+            <button class="ar-button" id="ar-toggle">
+                <i class="fas fa-map-marked-alt"></i>
+                啟動實境導航
+            </button>
+        </div>
+        <div class="route-list">
+            <!-- 骨架屏，加載中顯示 -->
+            <div class="route-skeleton">
+                <div class="skeleton-image"></div>
+                <div class="skeleton-info">
+                    <div class="skeleton-line title"></div>
+                    <div class="skeleton-line medium"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+            
+            <!-- 無搜索結果提示 -->
+            <div class="no-results">
+                <i class="fas fa-map-signs"></i>
+                <p>未找到符合條件的路線</p>
+                <p>嘗試修改搜索條件或查看所有路線</p>
+            </div>
+        
+            <div class="route-item">
+                <div class="route-image" style="background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="route-overlay"></div>
+                    <div class="route-difficulty">中等難度</div>
+                    <div class="route-distance">10.9 公里</div>
+                </div>
+                <div class="route-info">
+                    <div class="route-name">玉山主峰線</div>
+                    <div class="route-meta">
+                        <div><i class="fas fa-clock"></i> 約8小時</div>
+                        <div><i class="fas fa-arrow-up"></i> 1,150 公尺</div>
+                        <div><i class="fas fa-user"></i> 已有3,482人完成</div>
+                    </div>
+                    <div class="route-actions">
+                        <div class="route-action-btn">
+                            <i class="fas fa-info-circle"></i> 詳情
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-download"></i> 下載
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-share"></i> 分享
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="route-item">
+                <div class="route-image" style="background-image: url('https://images.unsplash.com/photo-1564769662533-4f00a87b4056?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1354&q=80');">
+                    <div class="route-overlay"></div>
+                    <div class="route-difficulty">簡單</div>
+                    <div class="route-distance">3.5 公里</div>
+                </div>
+                <div class="route-info">
+                    <div class="route-name">阿里山神木區步道</div>
+                    <div class="route-meta">
+                        <div><i class="fas fa-clock"></i> 約2小時</div>
+                        <div><i class="fas fa-arrow-up"></i> 150 公尺</div>
+                        <div><i class="fas fa-user"></i> 已有12,387人完成</div>
+                    </div>
+                    <div class="route-actions">
+                        <div class="route-action-btn">
+                            <i class="fas fa-info-circle"></i> 詳情
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-download"></i> 下載
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-share"></i> 分享
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="route-item">
+                <div class="route-image" style="background-image: url('https://images.unsplash.com/photo-1502126324834-38f8e02d7160?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="route-overlay"></div>
+                    <div class="route-difficulty">困難</div>
+                    <div class="route-distance">15.7 公里</div>
+                </div>
+                <div class="route-info">
+                    <div class="route-name">雪山主東線</div>
+                    <div class="route-meta">
+                        <div><i class="fas fa-clock"></i> 約10小時</div>
+                        <div><i class="fas fa-arrow-up"></i> 1,923 公尺</div>
+                        <div><i class="fas fa-user"></i> 已有1,827人完成</div>
+                    </div>
+                    <div class="route-actions">
+                        <div class="route-action-btn">
+                            <i class="fas fa-info-circle"></i> 詳情
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-download"></i> 下載
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-share"></i> 分享
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 新增更多路線項目，增加滑動內容長度 -->
+            <div class="route-item">
+                <div class="route-image" style="background-image: url('https://images.unsplash.com/photo-1511709154375-5af9a4393958?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="route-overlay"></div>
+                    <div class="route-difficulty">中等難度</div>
+                    <div class="route-distance">7.2 公里</div>
+                </div>
+                <div class="route-info">
+                    <div class="route-name">七星山主峰</div>
+                    <div class="route-meta">
+                        <div><i class="fas fa-clock"></i> 約4小時</div>
+                        <div><i class="fas fa-arrow-up"></i> 760 公尺</div>
+                        <div><i class="fas fa-user"></i> 已有5,621人完成</div>
+                    </div>
+                    <div class="route-actions">
+                        <div class="route-action-btn">
+                            <i class="fas fa-info-circle"></i> 詳情
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-download"></i> 下載
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-share"></i> 分享
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="route-item">
+                <div class="route-image" style="background-image: url('https://images.unsplash.com/photo-1541675354272-5e7e9f919945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                    <div class="route-overlay"></div>
+                    <div class="route-difficulty">簡單</div>
+                    <div class="route-distance">2.3 公里</div>
+                </div>
+                <div class="route-info">
+                    <div class="route-name">陽明山擎天崗</div>
+                    <div class="route-meta">
+                        <div><i class="fas fa-clock"></i> 約1.5小時</div>
+                        <div><i class="fas fa-arrow-up"></i> 120 公尺</div>
+                        <div><i class="fas fa-user"></i> 已有8,472人完成</div>
+                    </div>
+                    <div class="route-actions">
+                        <div class="route-action-btn">
+                            <i class="fas fa-info-circle"></i> 詳情
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-download"></i> 下載
+                        </div>
+                        <div class="route-action-btn">
+                            <i class="fas fa-share"></i> 分享
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 增加底部間距，避免內容被底部導航擋住 -->
+            <div style="height: 80px;"></div>
+        </div>
+    </div>
+
+    <!-- AR 導航視圖 (預設隱藏) -->
+    <div class="ar-view" id="ar-view">
+        <div class="ar-header">
+            <div class="ar-title">玉山主峰線 AR導航</div>
+            <button class="ar-close" id="ar-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="ar-content">
+            <div class="ar-controls">
+                <button class="ar-control-btn">
+                    <i class="fas fa-map"></i>
+                </button>
+                <button class="ar-control-btn">
+                    <i class="fas fa-compass"></i>
+                </button>
+                <button class="ar-control-btn">
+                    <i class="fas fa-adjust"></i>
+                </button>
+            </div>
+            <div class="ar-directions">
+                <div class="ar-next-step">右轉前往登山口</div>
+                <div class="ar-distance">距離: 50 公尺</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地圖視圖 (預設顯示) -->
+    <div class="map-view" id="map-view" style="display: none;">
+        <div class="map-controls">
+            <button class="map-control-btn">
+                <i class="fas fa-location-arrow"></i> 定位
+            </button>
+            <button class="map-control-btn primary">
+                <i class="fas fa-play"></i> 開始導航
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 切換 AR 視圖
+        document.getElementById('ar-toggle').addEventListener('click', function() {
+            document.getElementById('ar-view').classList.add('active');
+        });
+
+        document.getElementById('ar-close').addEventListener('click', function() {
+            document.getElementById('ar-view').classList.remove('active');
+        });
+        
+        // 點擊過濾標籤
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有標籤的 active 類別
+                document.querySelectorAll('.filter-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                
+                // 添加當前標籤的 active 類別
+                this.classList.add('active');
+            });
+        });
+        
+        // 搜索框交互
+        const searchInput = document.querySelector('.search-box input');
+        searchInput.addEventListener('focus', function() {
+            this.parentElement.style.boxShadow = '0 1px 6px rgba(36, 181, 116, 0.2)';
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            this.parentElement.style.boxShadow = '';
+        });
+
+        // 模擬滾動載入更多內容
+        const routeContainer = document.querySelector('.route-container');
+        routeContainer.addEventListener('scroll', function() {
+            const scrollPosition = routeContainer.scrollTop + routeContainer.clientHeight;
+            const scrollHeight = routeContainer.scrollHeight;
+            
+            if (scrollPosition >= scrollHeight - 100) {
+                // 可以在這裡添加載入更多路線的邏輯
+                console.log('應該載入更多路線...');
+            }
+        });
+    </script>
+</body>
+</html> 

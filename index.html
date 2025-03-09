@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STEEP Club - 你的登山好伴侶</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/main.js" defer></script>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="status-bar">
+            <div class="time">12:30</div>
+            <div class="status-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-three-quarters"></i>
+            </div>
+        </div>
+        
+        <main class="app-content">
+            <iframe id="content-frame" src="pages/home.html" frameborder="0"></iframe>
+        </main>
+        
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>首頁</span>
+            </div>
+            <div class="nav-item" data-page="route">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>路線</span>
+            </div>
+            <div class="nav-item" data-page="journal">
+                <i class="fas fa-book"></i>
+                <span>日誌</span>
+            </div>
+            <div class="nav-item" data-page="sos">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>SOS</span>
+            </div>
+            <div class="nav-item" data-page="profile">
+                <i class="fas fa-user"></i>
+                <span>個人</span>
+            </div>
+        </nav>
+    </div>
+</body>
+</html> 

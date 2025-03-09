@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEEP Club - 個人資料</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        /* 自定义滚动条样式 - 应用于整个容器 */
+.profile-container::-webkit-scrollbar {
+    width: 4px; /* 更细的滚动条宽度 */
+    position: fixed;
+    right: 0;
+}
+
+.profile-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05); /* 滚动条轨道颜色 */
+    border-radius: 4px;
+}
+
+.profile-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2); /* 滚动条滑块颜色 */
+    border-radius: 4px;
+}
+
+.profile-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3); /* 鼠标悬停时滑块颜色 */
+}
+
+/* 删除旧的仅应用于profile-content的滚动条样式 */
+.profile-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* 确保滚动区域有正确的padding，避免内容贴近滚动条 */
+.profile-container {
+    padding-right: 4px;
+    overflow-y: auto; /* 使整个容器可滚动 */
+    -webkit-overflow-scrolling: touch; /* 提升iOS上的滚动体验 */
+}
+
+        html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+        .profile-container {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+             margin: 0;
+            padding: 0;
+        }
+
+        .profile-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 20px;
+            position: relative;
+            flex-shrink: 0; /* 防止头部被压缩 */
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 20px;
+            color: white;
+            background: none;
+            border: none;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .profile-username {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .stat-count {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .profile-tab-container {
+            background-color: var(--card-color);
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-shrink: 0; /* 防止标签栏被压缩 */
+        }
+
+        .profile-tabs {
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .profile-tab {
+            padding: 16px 0;
+            margin-right: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+            white-space: nowrap;
+            color: #777;
+            cursor: pointer;
+        }
+
+        .profile-tab.active {
+            color: var(--primary-color);
+        }
+
+        .profile-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* 個人資料標籤內容 */
+        .profile-content {
+            flex: 1;
+            overflow: visible; /* 移除overflow限制，让内容可以在container中滚动 */
+            padding-bottom: 30px; /* 添加底部padding，防止内容被底部导航栏遮挡 */
+        }
+
+        .profile-content.active {
+            display: block;
+        }
+
+        .info-section {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-btn {
+            color: var(--secondary-color);
+            font-size: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .info-item {
+            margin-bottom: 16px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 16px;
+        }
+
+        /* 錢包標籤內容 */
+        .wallet-balance {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 8px;
+        }
+
+        .balance-amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .balance-value {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 16px;
+        }
+
+        .wallet-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .wallet-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wallet-btn:hover {
+            background-color: #0069d9;
+        }
+
+        .wallet-btn i {
+            margin-right: 8px;
+        }
+
+        .transactions-title {
+            margin: 24px 0 16px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .transaction-item {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .transaction-icon.received {
+            color: #4cd964;
+            background-color: rgba(76, 217, 100, 0.1);
+        }
+
+        .transaction-icon.sent {
+            color: #ff3b30;
+            background-color: rgba(255, 59, 48, 0.1);
+        }
+
+        .transaction-icon.reward {
+            color: #ff9500;
+            background-color: rgba(255, 149, 0, 0.1);
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .transaction-date {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .transaction-amount.received {
+            color: #4cd964;
+        }
+
+        .transaction-amount.sent {
+            color: #ff3b30;
+        }
+
+        .transaction-amount.reward {
+            color: #ff9500;
+        }
+
+        /* NFT獎勵內容 */
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .nft-item {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .nft-image {
+            height: 160px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .nft-rarity {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .nft-info {
+            padding: 12px;
+        }
+
+        .nft-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+
+        .nft-desc {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 8px;
+        }
+
+        .nft-obtained {
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* 設定標籤內容 */
+        .settings-section {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .settings-item {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-right: 12px;
+        }
+
+        .settings-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .settings-text {
+            flex: 1;
+        }
+
+        .settings-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .settings-desc {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .settings-right {
+            color: #999;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+    <div class="profile-container">
+        <div class="profile-header">
+            <button class="settings-btn"><i class="fas fa-cog"></i></button>
+            <div class="profile-avatar">
+                <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="User Profile">
+            </div>
+            <div class="profile-name">陳明山</div>
+            <div class="profile-username">@mountain_lover</div>
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="stat-count">27</div>
+                    <div class="stat-label">百岳</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-count">345</div>
+                    <div class="stat-label">追蹤者</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-count">142</div>
+                    <div class="stat-label">追蹤中</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-tab-container">
+            <div class="profile-tabs">
+                <div class="profile-tab active" data-tab="profile">個人資料</div>
+                <div class="profile-tab" data-tab="wallet">STEEP錢包</div>
+                <div class="profile-tab" data-tab="nft">NFT獎勵</div>
+                <div class="profile-tab" data-tab="settings">設定</div>
+            </div>
+        </div>
+
+        <!-- 個人資料標籤內容 -->
+        <div class="profile-content active" id="profile-tab">
+            <div class="info-section">
+                <div class="section-title">
+                    <span>基本資料</span>
+                    <button class="edit-btn"><i class="fas fa-pencil-alt"></i> 編輯</button>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">姓名</div>
+                    <div class="info-value">陳明山</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">電子郵件</div>
+                    <div class="info-value">mountain@example.com</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">電話</div>
+                    <div class="info-value">0912-345-678</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">生日</div>
+                    <div class="info-value">1985/07/16</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="section-title">
+                    <span>登山資料</span>
+                    <button class="edit-btn"><i class="fas fa-pencil-alt"></i> 編輯</button>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">經驗等級</div>
+                    <div class="info-value">進階山友</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">百岳目標</div>
+                    <div class="info-value">完成全部百岳 (進度: 27/100)</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">首次登山</div>
+                    <div class="info-value">2010/05/23 (象山步道)</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">專長</div>
+                    <div class="info-value">高山攝影, 輕量化裝備</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="section-title">
+                    <span>緊急聯絡人</span>
+                    <button class="edit-btn"><i class="fas fa-pencil-alt"></i> 編輯</button>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">聯絡人 1</div>
+                    <div class="info-value">林小明 (配偶) - 0923-456-789</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">聯絡人 2</div>
+                    <div class="info-value">王大華 (朋友) - 0934-567-890</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 錢包標籤內容 -->
+        <div class="profile-content" id="wallet-tab">
+            <div class="wallet-balance">
+                <div class="balance-label">STEEP 幣餘額</div>
+                <div class="balance-amount">892</div>
+                <div class="balance-value">約等值 NT$ 8,920</div>
+                <div class="wallet-actions">
+                    <button class="wallet-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        轉帳
+                    </button>
+                    <button class="wallet-btn">
+                        <i class="fas fa-exchange-alt"></i>
+                        兌換
+                    </button>
+                </div>
+            </div>
+
+            <div class="transactions-title">近期交易紀錄</div>
+            
+            <div class="transaction-item">
+                <div class="transaction-icon reward">
+                    <i class="fas fa-award"></i>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-title">完成玉山主峰線</div>
+                    <div class="transaction-date">2023/04/15</div>
+                </div>
+                <div class="transaction-amount reward">+100</div>
+            </div>
+            
+            <div class="transaction-item">
+                <div class="transaction-icon sent">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-title">購買高級裝備</div>
+                    <div class="transaction-date">2023/03/22</div>
+                </div>
+                <div class="transaction-amount sent">-150</div>
+            </div>
+            
+            <div class="transaction-item">
+                <div class="transaction-icon received">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-title">網友感謝你的山路分享</div>
+                    <div class="transaction-date">2023/03/10</div>
+                </div>
+                <div class="transaction-amount received">+25</div>
+            </div>
+            
+            <div class="transaction-item">
+                <div class="transaction-icon reward">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-title">達成「健行愛好者」成就</div>
+                    <div class="transaction-date">2023/02/28</div>
+                </div>
+                <div class="transaction-amount reward">+200</div>
+            </div>
+        </div>
+
+        <!-- NFT獎勵標籤內容 -->
+        <div class="profile-content" id="nft-tab">
+            <div class="info-section">
+                <div class="section-title">
+                    <span>我的數位收藏品</span>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">已擁有</div>
+                    <div class="info-value">8 件數位收藏品</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">已綁定錢包</div>
+                    <div class="info-value">0x71C...8E39</div>
+                </div>
+            </div>
+
+            <div class="nft-grid">
+                <div class="nft-item">
+                    <div class="nft-image" style="background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                        <div class="nft-rarity">稀有</div>
+                    </div>
+                    <div class="nft-info">
+                        <div class="nft-name">玉山主峰證書</div>
+                        <div class="nft-desc">登頂玉山主峰的獨特紀念品</div>
+                        <div class="nft-obtained">獲得於: 2023/04/15</div>
+                    </div>
+                </div>
+
+                <div class="nft-item">
+                    <div class="nft-image" style="background-image: url('https://images.unsplash.com/photo-1495312040802-a929cd14a6ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                        <div class="nft-rarity">普通</div>
+                    </div>
+                    <div class="nft-info">
+                        <div class="nft-name">合歡山東峰證書</div>
+                        <div class="nft-desc">攀登合歡山東峰的紀念證明</div>
+                        <div class="nft-obtained">獲得於: 2023/03/10</div>
+                    </div>
+                </div>
+
+                <div class="nft-item">
+                    <div class="nft-image" style="background-image: url('https://images.unsplash.com/photo-1490682143684-14369e18dce8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                        <div class="nft-rarity">傳奇</div>
+                    </div>
+                    <div class="nft-info">
+                        <div class="nft-name">森林守護者徽章</div>
+                        <div class="nft-desc">對環境保護有傑出貢獻的認證</div>
+                        <div class="nft-obtained">獲得於: 2023/02/15</div>
+                    </div>
+                </div>
+
+                <div class="nft-item">
+                    <div class="nft-image" style="background-image: url('https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                        <div class="nft-rarity">普通</div>
+                    </div>
+                    <div class="nft-info">
+                        <div class="nft-name">日出獵人</div>
+                        <div class="nft-desc">捕捉高山日出的證明</div>
+                        <div class="nft-obtained">獲得於: 2023/01/22</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設定標籤內容 -->
+        <div class="profile-content" id="settings-tab">
+            <div class="settings-section">
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #007aff;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">通知設定</div>
+                            <div class="settings-desc">管理應用通知</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #4cd964;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">隱私與安全</div>
+                            <div class="settings-desc">管理個人資料隱私</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #ff9500;">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">錢包設定</div>
+                            <div class="settings-desc">管理區塊鏈錢包連結</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #ff3b30;">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">位置追蹤</div>
+                            <div class="settings-desc">允許應用追蹤您的位置</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #34c759;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">自動SOS</div>
+                            <div class="settings-desc">無活動時自動發送求救信號</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #5856d6;">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">離線地圖</div>
+                            <div class="settings-desc">自動下載路線離線地圖</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #999;">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">幫助與支援</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #999;">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">關於</div>
+                            <div class="settings-desc">版本 1.0.0</div>
+                        </div>
+                    </div>
+                    <div class="settings-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="settings-item" style="color: #ff3b30;">
+                    <div class="settings-left">
+                        <div class="settings-icon" style="color: #ff3b30;">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <div class="settings-text">
+                            <div class="settings-title">登出</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 標籤切換功能
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有標籤的 active 類別
+                document.querySelectorAll('.profile-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                
+                // 隱藏所有內容
+                document.querySelectorAll('.profile-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // 添加當前標籤的 active 類別
+                this.classList.add('active');
+                
+                // 顯示對應的內容
+                const tabName = this.getAttribute('data-tab');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html> 

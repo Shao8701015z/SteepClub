@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEEP Club - SOS緊急救援</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        /* 自定義滑動條樣式 */
+        .sos-container::-webkit-scrollbar {
+            width: 4px; /* 更窄的滑動條寬度 */
+            position: fixed;
+            right: 0;
+        }
+
+        .sos-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05); /* 滑動條軌道顏色 */
+            border-radius: 4px;
+        }
+
+        .sos-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2); /* 滑動條滑塊顏色 */
+            border-radius: 4px;
+        }
+
+        .sos-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3); /* 滑鼠懸停時滑塊顏色 */
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .sos-container {
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 24px; /* 增加右側間距，為滑動條預留空間 */
+        }
+
+        .sos-header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .sos-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+        }
+
+        .sos-subtitle {
+            font-size: 14px;
+            color: #777;
+        }
+
+        .sos-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 380px;
+        }
+
+        .sos-button-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 30px;
+            z-index: 2;
+        }
+
+        .sos-button {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 30px;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.5);
+            z-index: 2;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .sos-button:hover, .sos-button:active {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.6);
+        }
+
+        .sos-button i {
+            font-size: 42px;
+            margin-bottom: 8px;
+        }
+
+        .sos-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 107, 107, 0.2);
+            animation: ripple 2s infinite;
+            z-index: 1;
+        }
+
+        .sos-ripple:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .sos-ripple:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes ripple {
+            0% {
+                width: 100%;
+                height: 100%;
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        .sos-info {
+            text-align: center;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            max-width: 300px;
+        }
+
+        .sos-info p {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .sos-timer {
+            font-size: 16px;
+            font-weight: 600;
+            background-color: #f4f4f4;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            margin-top: 10px;
+        }
+
+        .emergency-contacts {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        .contacts-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .contacts-title i {
+            margin-right: 8px;
+            color: var(--accent-color);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .contact-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .contact-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .contact-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .contact-role {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .contact-call {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #4cd964;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .user-location {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        .location-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .location-title i {
+            margin-right: 8px;
+            color: var(--secondary-color);
+        }
+
+        .location-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .location-info {
+            flex: 1;
+        }
+
+        .location-label {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 2px;
+        }
+
+        .location-value {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .location-copy {
+            color: var(--secondary-color);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .location-copy:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+
+        .location-map {
+            height: 110px;
+            background-color: #eee;
+            border-radius: 8px;
+            background-image: url('https://maps.googleapis.com/maps/api/staticmap?center=23.47,120.95&zoom=13&size=400x200&maptype=terrain&markers=color:red|23.47,120.95&key=YOUR_API_KEY');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* SOS 啟動後狀態 */
+        .sos-active {
+            display: none;
+            text-align: center;
+        }
+
+        .sos-active-container {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .sos-active-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 14px;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .sos-active-info {
+            margin-bottom: 20px;
+            padding: 0 15px;
+            font-size: 14px;
+        }
+
+        .sos-countdown {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 16px 0;
+            color: var(--accent-color);
+        }
+
+        .sos-cancel-btn {
+            background-color: #fff;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 15px;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sos-cancel-btn:hover, .sos-cancel-btn:active {
+            background-color: rgba(255, 107, 107, 0.1);
+        }
+
+        .sos-status {
+            font-size: 13px;
+            margin-top: 14px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="sos-container">
+        <div class="sos-header">
+            <div class="sos-title">緊急求救系統</div>
+            <div class="sos-subtitle">若你遇到危險情況，請按下SOS按鈕</div>
+        </div>
+
+        <div class="sos-main" id="sos-main">
+            <div class="sos-button-container">
+                <div class="sos-ripple"></div>
+                <div class="sos-ripple"></div>
+                <div class="sos-ripple"></div>
+                <button class="sos-button" id="sos-button">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    SOS
+                </button>
+            </div>
+
+            <div class="sos-info">
+                <p>按下SOS按鈕後，我們將立即通知您的緊急聯絡人並將您的位置資訊傳送給附近的搜救隊。</p>
+                <div class="sos-timer">自動求救倒數: <span id="countdown">8:00:00</span></div>
+            </div>
+        </div>
+
+        <!-- SOS啟動後顯示的畫面 -->
+        <div class="sos-active" id="sos-active">
+            <div class="sos-active-container">
+                <div class="sos-active-title">SOS求救信號已啟動</div>
+                <div class="sos-active-info">
+                    我們已發送您的位置資訊給緊急聯絡人和搜救隊
+                </div>
+                <div class="sos-countdown" id="sos-countdown">30:00</div>
+                <div>若您已安全，請取消求救信號</div>
+                <button class="sos-cancel-btn" id="sos-cancel-btn">取消求救</button>
+                <div class="sos-status">搜救隊預計<span id="arrival-time">35分鐘</span>後到達您的位置</div>
+            </div>
+        </div>
+
+        <div class="emergency-contacts">
+            <div class="contacts-title">
+                <i class="fas fa-phone-alt"></i> 緊急聯絡人
+            </div>
+            <div class="contact-item">
+                <div class="contact-info">
+                    <div class="contact-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <div class="contact-name">張小明</div>
+                        <div class="contact-role">家人</div>
+                    </div>
+                </div>
+                <div class="contact-call">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+            </div>
+            <div class="contact-item">
+                <div class="contact-info">
+                    <div class="contact-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <div class="contact-name">登山嚮導</div>
+                        <div class="contact-role">嚮導</div>
+                    </div>
+                </div>
+                <div class="contact-call">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-location">
+            <div class="location-title">
+                <i class="fas fa-map-marker-alt"></i> 您的位置
+            </div>
+            <div class="location-details">
+                <div class="location-info">
+                    <div class="location-label">經緯度</div>
+                    <div class="location-value">23.47°N, 120.95°E</div>
+                </div>
+                <div class="location-copy">
+                    <i class="fas fa-copy"></i> 複製
+                </div>
+            </div>
+            <div class="location-details">
+                <div class="location-info">
+                    <div class="location-label">海拔</div>
+                    <div class="location-value">1,985 公尺</div>
+                </div>
+            </div>
+            <div class="location-map"></div>
+        </div>
+        
+        <!-- 添加更多可滑動內容 -->
+        <div class="emergency-contacts">
+            <div class="contacts-title">
+                <i class="fas fa-first-aid"></i> 附近急救資源
+            </div>
+            <div class="contact-item">
+                <div class="contact-info">
+                    <div class="contact-avatar" style="background-color: #ff9500;">
+                        <i class="fas fa-hospital"></i>
+                    </div>
+                    <div>
+                        <div class="contact-name">玉山國家公園管理處</div>
+                        <div class="contact-role">距離: 8.5 公里</div>
+                    </div>
+                </div>
+                <div class="contact-call">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+            </div>
+            <div class="contact-item">
+                <div class="contact-info">
+                    <div class="contact-avatar" style="background-color: #4cd964;">
+                        <i class="fas fa-hiking"></i>
+                    </div>
+                    <div>
+                        <div class="contact-name">山屋管理員</div>
+                        <div class="contact-role">距離: 2.1 公里</div>
+                    </div>
+                </div>
+                <div class="contact-call">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 增加底部間距，避免內容被底部導航擋住 -->
+        <div style="height: 80px;"></div>
+    </div>
+
+    <script>
+        // SOS按鈕功能
+        document.getElementById('sos-button').addEventListener('click', function() {
+            document.getElementById('sos-main').style.display = 'none';
+            document.getElementById('sos-active').style.display = 'block';
+            
+            // 倒數計時功能
+            let seconds = 30 * 60; // 30分鐘倒數
+            const countdownEl = document.getElementById('sos-countdown');
+            
+            const timer = setInterval(function() {
+                seconds--;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                countdownEl.textContent = `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+                
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    // 倒數結束
+                }
+            }, 1000);
+        });
+        
+        // 取消SOS按鈕功能
+        document.getElementById('sos-cancel-btn').addEventListener('click', function() {
+            document.getElementById('sos-main').style.display = 'flex';
+            document.getElementById('sos-active').style.display = 'none';
+        });
+        
+        // 位置複製功能
+        document.querySelector('.location-copy').addEventListener('click', function() {
+            const locationValue = document.querySelector('.location-value').textContent;
+            navigator.clipboard.writeText(locationValue).then(() => {
+                alert('已複製位置資訊到剪貼簿');
+            });
+        });
+    </script>
+</body>
+</html> 

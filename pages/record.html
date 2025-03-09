@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEEP Club - 登山紀錄</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .record-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .record-header {
+            padding: 20px;
+            background-color: var(--card-color);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background-color: var(--background-color);
+            padding: 12px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin: 0 6px;
+        }
+
+        .stat-card:first-child {
+            margin-left: 0;
+        }
+
+        .stat-card:last-child {
+            margin-right: 0;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .record-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px 20px;
+        }
+
+        .record-item {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .record-image {
+            height: 120px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .record-date {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .record-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .record-badge i {
+            margin-right: 4px;
+        }
+
+        .record-info {
+            padding: 16px;
+        }
+
+        .record-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-name-text {
+            flex: 1;
+        }
+
+        .record-share {
+            color: var(--secondary-color);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .record-meta {
+            display: flex;
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .record-meta-item {
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .record-meta-item i {
+            margin-right: 4px;
+            font-size: 16px;
+        }
+
+        .record-description {
+            margin-top: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        /* 成就頁面樣式 */
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 0 20px 20px 20px;
+            overflow-y: auto;
+            height: calc(100% - 137px);
+        }
+
+        .achievement {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .achievement.locked {
+            filter: grayscale(1);
+            opacity: 0.7;
+        }
+
+        .achievement-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+        }
+
+        .achievement-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .achievement-description {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 12px;
+        }
+
+        .achievement-progress {
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .achievement-progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .achievement-progress-text {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .achievement-lock {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 18px;
+            color: #999;
+        }
+
+        /* 挑戰進度樣式 */
+        .challenge-list {
+            padding: 0 20px 20px 20px;
+            overflow-y: auto;
+            height: calc(100% - 137px);
+        }
+
+        .challenge-item {
+            background-color: var(--card-color);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .challenge-header {
+            display: flex;
+            padding: 16px;
+            align-items: center;
+        }
+
+        .challenge-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .challenge-info {
+            flex: 1;
+        }
+
+        .challenge-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .challenge-details {
+            font-size: 12px;
+            color: #777;
+            display: flex;
+            align-items: center;
+        }
+
+        .challenge-details i {
+            margin-right: 4px;
+        }
+
+        .challenge-progress-container {
+            padding: 0 16px 16px 16px;
+        }
+
+        .challenge-progress {
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .challenge-progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .challenge-progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .challenge-reward {
+            background-color: #f8f8f8;
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+        }
+
+        .challenge-reward-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .challenge-reward-items {
+            display: flex;
+            align-items: center;
+        }
+
+        .challenge-reward-item {
+            display: flex;
+            align-items: center;
+            margin-right: 16px;
+        }
+
+        .challenge-reward-item i {
+            margin-right: 4px;
+            color: var(--secondary-color);
+        }
+
+        /* 標籤選擇器樣式 */
+        .filter-tabs {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 16px;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: #f0f0f0;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .filter-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* 標籤樣式 */
+        .content-tab {
+            display: none;
+        }
+
+        .content-tab.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="record-container">
+        <div class="record-header">
+            <div class="tab-container">
+                <div class="tab active" data-tab="record">登山紀錄</div>
+                <div class="tab" data-tab="achievements">成就</div>
+                <div class="tab" data-tab="challenges">挑戰</div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value">42</div>
+                    <div class="stat-label">總登山次數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">27</div>
+                    <div class="stat-label">百岳完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">18</div>
+                    <div class="stat-label">獲得成就</div>
+                </div>
+            </div>
+
+            <div class="filter-tabs">
+                <div class="filter-tab active">全部</div>
+                <div class="filter-tab">百岳</div>
+                <div class="filter-tab">中級山</div>
+                <div class="filter-tab">郊山</div>
+                <div class="filter-tab">已分享</div>
+            </div>
+        </div>
+
+        <!-- 登山紀錄標籤內容 -->
+        <div class="content-tab active" id="record-tab">
+            <div class="record-list">
+                <div class="record-item">
+                    <div class="record-image" style="background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                        <div class="record-badge"><i class="fas fa-medal"></i> 百岳</div>
+                        <div class="record-date">2023/04/15</div>
+                    </div>
+                    <div class="record-info">
+                        <div class="record-name">
+                            <span class="record-name-text">玉山主峰</span>
+                            <span class="record-share"><i class="fas fa-share-alt"></i></span>
+                        </div>
+                        <div class="record-meta">
+                            <div class="record-meta-item">
+                                <i class="fas fa-mountain"></i> 3,952 公尺
+                            </div>
+                            <div class="record-meta-item">
+                                <i class="fas fa-route"></i> 10.9 公里
+                            </div>
+                            <div class="record-meta-item">
+                                <i class="fas fa-clock"></i> 7 小時 45 分
+                            </div>
+                        </div>
+                        <div class="record-description">
+                            太美了！這次的日出讓我畢生難忘，能在台灣最高峰欣賞到如此壯麗的景色實在幸運。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="record-item">
+                    <div class="record-image" style="background-image: url('https://images.unsplash.com/photo-1495312040802-a929cd14a6ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                        <div class="record-date">2023/03/10</div>
+                    </div>
+                    <div class="record-info">
+                        <div class="record-name">
+                            <span class="record-name-text">合歡山東峰</span>
+                            <span class="record-share"><i class="fas fa-share-alt"></i></span>
+                        </div>
+                        <div class="record-meta">
+                            <div class="record-meta-item">
+                                <i class="fas fa-mountain"></i> 3,421 公尺
+                            </div>
+                            <div class="record-meta-item">
+                                <i class="fas fa-route"></i> 3.7 公里
+                            </div>
+                            <div class="record-meta-item">
+                                <i class="fas fa-clock"></i> 2 小時 30 分
+                            </div>
+                        </div>
+                        <div class="record-description">
+                            今天天氣超好，可以眺望周圍群山。回程時遇到了山羌，真是難得的體驗！
+                        </div>
+                    </div>
+                </div>
+
+                <div class="record-item">
+                    <div class="record-image" style="background-image: url('https://images.unsplash.com/photo-1556953410-b77e980452c1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');">
+                        <div class="record-date">2023/02/20</div>
+                    </div>
+                    <div class="record-info">
+                        <div class="record-name">
+                            <span class="record-name-text">象山步道</span>
+                            <span class="record-share"><i class="fas fa-share-alt"></i></span>
+                        </div>
+                        <div class="record-meta">
+                            <div class="record-meta-item">
+                                <i class="fas fa-mountain"></i> 183 公尺
+                            </div>
+                            <div class="record-meta-item">
+                                <i class="fas fa-route"></i> 1.5 公里
+                            </div>
+                            <div class="record-meta-item">
+                                <i class="fas fa-clock"></i> 50 分
+                            </div>
+                        </div>
+                        <div class="record-description">
+                            午後的台北市景真是令人讚嘆，難怪這麼多人喜歡這條路線，方便又美麗！
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成就標籤內容 -->
+        <div class="content-tab" id="achievements-tab">
+            <div class="achievement-grid">
+                <div class="achievement">
+                    <div class="achievement-icon" style="background-color: #ff9500;">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="achievement-name">百岳挑戰者</div>
+                    <div class="achievement-description">完成至少20座百岳</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 100%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">27/20 完成</div>
+                </div>
+
+                <div class="achievement">
+                    <div class="achievement-icon" style="background-color: #4cd964;">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <div class="achievement-name">森林守護者</div>
+                    <div class="achievement-description">在山中撿拾垃圾達5次</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 100%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">8/5 完成</div>
+                </div>
+
+                <div class="achievement">
+                    <div class="achievement-icon" style="background-color: #5ac8fa;">
+                        <i class="fas fa-hiking"></i>
+                    </div>
+                    <div class="achievement-name">健行愛好者</div>
+                    <div class="achievement-description">累計健行距離超過100公里</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 100%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">138/100 公里</div>
+                </div>
+
+                <div class="achievement">
+                    <div class="achievement-icon" style="background-color: #007aff;">
+                        <i class="fas fa-compass"></i>
+                    </div>
+                    <div class="achievement-name">探險家</div>
+                    <div class="achievement-description">完成10條不同路線</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 100%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">12/10 完成</div>
+                </div>
+
+                <div class="achievement">
+                    <div class="achievement-icon" style="background-color: #fd9426;">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="achievement-name">日出獵人</div>
+                    <div class="achievement-description">欣賞5次山頂日出</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 60%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">3/5 完成</div>
+                </div>
+
+                <div class="achievement locked">
+                    <div class="achievement-lock"><i class="fas fa-lock"></i></div>
+                    <div class="achievement-icon" style="background-color: #c969e6;">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="achievement-name">高山攝影師</div>
+                    <div class="achievement-description">分享20張高山風景照</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 45%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">9/20 完成</div>
+                </div>
+
+                <div class="achievement locked">
+                    <div class="achievement-lock"><i class="fas fa-lock"></i></div>
+                    <div class="achievement-icon" style="background-color: #df5286;">
+                        <i class="fas fa-snowflake"></i>
+                    </div>
+                    <div class="achievement-name">雪山征服者</div>
+                    <div class="achievement-description">冬季完成3座3000公尺以上高山</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 33%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">1/3 完成</div>
+                </div>
+
+                <div class="achievement locked">
+                    <div class="achievement-lock"><i class="fas fa-lock"></i></div>
+                    <div class="achievement-icon" style="background-color: #fc3158;">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="achievement-name">耐力大師</div>
+                    <div class="achievement-description">單日完成兩座百岳</div>
+                    <div class="achievement-progress">
+                        <div class="achievement-progress-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="achievement-progress-text">0/1 完成</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 挑戰標籤內容 -->
+        <div class="content-tab" id="challenges-tab">
+            <div class="challenge-list">
+                <div class="challenge-item">
+                    <div class="challenge-header">
+                        <div class="challenge-icon">
+                            <i class="fas fa-mountain"></i>
+                        </div>
+                        <div class="challenge-info">
+                            <div class="challenge-name">玉山群峰挑戰</div>
+                            <div class="challenge-details">
+                                <i class="fas fa-calendar-alt"></i> 剩餘時間: 45天
+                            </div>
+                        </div>
+                    </div>
+                    <div class="challenge-progress-container">
+                        <div class="challenge-progress">
+                            <div class="challenge-progress-bar" style="width: 40%;"></div>
+                        </div>
+                        <div class="challenge-progress-text">
+                            <div>已完成 2/5 峰</div>
+                            <div>40%</div>
+                        </div>
+                    </div>
+                    <div class="challenge-reward">
+                        <div class="challenge-reward-title">完成獎勵:</div>
+                        <div class="challenge-reward-items">
+                            <div class="challenge-reward-item">
+                                <i class="fas fa-coins"></i> 500 STEEP幣
+                            </div>
+                            <div class="challenge-reward-item">
+                                <i class="fas fa-award"></i> 「玉山征服者」稱號
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="challenge-item">
+                    <div class="challenge-header">
+                        <div class="challenge-icon" style="background-color: #4cd964;">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="challenge-info">
+                            <div class="challenge-name">春季山林健行</div>
+                            <div class="challenge-details">
+                                <i class="fas fa-calendar-alt"></i> 剩餘時間: 15天
+                            </div>
+                        </div>
+                    </div>
+                    <div class="challenge-progress-container">
+                        <div class="challenge-progress">
+                            <div class="challenge-progress-bar" style="width: 75%;"></div>
+                        </div>
+                        <div class="challenge-progress-text">
+                            <div>已完成 30/40 公里</div>
+                            <div>75%</div>
+                        </div>
+                    </div>
+                    <div class="challenge-reward">
+                        <div class="challenge-reward-title">完成獎勵:</div>
+                        <div class="challenge-reward-items">
+                            <div class="challenge-reward-item">
+                                <i class="fas fa-coins"></i> 200 STEEP幣
+                            </div>
+                            <div class="challenge-reward-item">
+                                <i class="fas fa-tshirt"></i> 限定登山服裝
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="challenge-item">
+                    <div class="challenge-header">
+                        <div class="challenge-icon" style="background-color: #ff9500;">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="challenge-info">
+                            <div class="challenge-name">百岳集點計畫</div>
+                            <div class="challenge-details">
+                                <i class="fas fa-infinity"></i> 永久挑戰
+                            </div>
+                        </div>
+                    </div>
+                    <div class="challenge-progress-container">
+                        <div class="challenge-progress">
+                            <div class="challenge-progress-bar" style="width: 27%;"></div>
+                        </div>
+                        <div class="challenge-progress-text">
+                            <div>已完成 27/100 座</div>
+                            <div>27%</div>
+                        </div>
+                    </div>
+                    <div class="challenge-reward">
+                        <div class="challenge-reward-title">階段獎勵:</div>
+                        <div class="challenge-reward-items">
+                            <div class="challenge-reward-item">
+                                <i class="fas fa-trophy"></i> 每10座獲得特殊徽章
+                            </div>
+                            <div class="challenge-reward-item">
+                                <i class="fas fa-star"></i> 完成100座解鎖神秘獎勵
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 標籤切換功能
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有標籤的 active 類別
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                
+                // 隱藏所有內容
+                document.querySelectorAll('.content-tab').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // 添加當前標籤的 active 類別
+                this.classList.add('active');
+                
+                // 顯示對應的內容
+                const tabName = this.getAttribute('data-tab');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html> 
